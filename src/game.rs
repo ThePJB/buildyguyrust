@@ -275,8 +275,6 @@ impl GameState {
         if self.player_is_grounded() {
             self.last_grounded = self.time;
         }
-
-        // we could definitely report player col dir
     }
 
     pub fn cease_falling(entities: &mut HashMap<u32, Entity>, collisions: &Vec<CollisionEvent>) {
@@ -309,6 +307,14 @@ impl GameState {
         // how to check if grounded? 
         if self.time - self.last_grounded < coyote_time {
             self.entities.get_mut(&self.player_id).unwrap().vy = jump_speed;
+        }
+    }
+
+    pub fn release_jump(&mut self) {
+        // how to check if grounded? 
+        let player = self.entities.get_mut(&self.player_id).unwrap();
+        if player.vy < 0.0 {
+            player.vy /= 2.0;
         }
     }
 
@@ -409,6 +415,7 @@ impl GameState {
         match e {
             //Event::KeyDown{keycode: Some(Keycode::A), ..} => {}
             Event::KeyDown{keycode: Some(Keycode::Space), ..} => {self.try_jump()}
+            Event::KeyUp{keycode: Some(Keycode::Space), ..} => {self.release_jump()}
             Event::KeyDown{keycode: Some(Keycode::J), ..} => { self.add_entity(Entity::new_platform(
                 self.entities.get(&self.player_id).unwrap().aabb.x, 
                 PlatformHeight::Bottom));}
