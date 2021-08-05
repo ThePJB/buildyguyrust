@@ -113,3 +113,6 @@ variable jump height
 level gen
 fix running
 fix from right though its truly not needed lol
+
+----
+to refactor will I be allowed circular imports?

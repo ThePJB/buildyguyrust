@@ -7,13 +7,15 @@ use sdl2::keyboard::KeyboardState;
 use sdl2::keyboard::Scancode;
 use std::collections::HashMap;
 use rand::Rng;
-use std::time::{SystemTime, UNIX_EPOCH};
-
 
 static jump_speed: f32 = -1.5;
 static movement_speed: f32 = 0.8;
 static coyote_time: f64 = 0.1;
 
+static wall_spacing_range:std::ops::Range<f32> = 0.35..1.0;
+static wall_height_range:std::ops::Range<f32> = 0.1..0.6;
+static wall_gap: f32 = 0.3;
+static wall_w: f32 = 0.1;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Rect {
@@ -205,6 +207,7 @@ pub struct GameState {
     frame_movements: Vec<(u32, f32, f32)>,
     time: f64,
     last_grounded: f64,
+    next_wall: f32,
 }
 
 impl GameState {
@@ -220,6 +223,7 @@ impl GameState {
             player_id: 0,
             time: 0.0,
             last_grounded: 0.0,
+            next_wall: aspect_ratio,
         };
 
         state.player_id = state.add_entity(Entity::new_player(aspect_ratio/2.0, 0.4));
@@ -262,6 +266,13 @@ impl GameState {
     pub fn update(&mut self, dt: f64) {
         self.time += dt;
         self.cam_x += self.cam_vx * dt as f32;
+
+        if self.cam_x >= self.next_wall {
+            let height = rand::thread_rng().gen_range(wall_height_range.clone());
+            self.add_entity(Entity::new_wall_segment(Rect::new(self.aspect_ratio + self.next_wall, height - 1000.0, wall_w, 1000.0)));
+            self.add_entity(Entity::new_wall_segment(Rect::new(self.aspect_ratio + self.next_wall, height + wall_gap, wall_w, 1000.0)));
+            self.next_wall += rand::thread_rng().gen_range(wall_spacing_range.clone());
+        }
 
         self.frame_collisions.clear();
         self.frame_movements.clear();
@@ -311,7 +322,6 @@ impl GameState {
     }
 
     pub fn release_jump(&mut self) {
-        // how to check if grounded? 
         let player = self.entities.get_mut(&self.player_id).unwrap();
         if player.vy < 0.0 {
             player.vy /= 2.0;
