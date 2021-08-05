@@ -1,7 +1,7 @@
 mod game;
 
 use sdl2::pixels::Color;
-use sdl2::keyboard::Keycode;
+use sdl2::keyboard::{KeyboardState, Keycode};
 use sdl2::event::Event;
 use game::GameState;
 
@@ -21,10 +21,14 @@ fn main() {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
 
-    let mut state = GameState::new(a, 1.0);
+    let gravity = 3.5;
+    let cam_vx = 0.4;
+
+    let mut state = GameState::new(a, gravity, cam_vx);
     let dt = 1.0f64 / 60f64;
 
     'running: loop {
+        
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit {..} |
@@ -32,15 +36,17 @@ fn main() {
                     break 'running;
                 }
                 Event::KeyDown {keycode: Some(Keycode::R), ..} => {
-                    state = GameState::new(a, 1.0);
+                    println!("===== reset =====");
+                    state = GameState::new(a, gravity, cam_vx);
                 }
-                _ => {}
+                _ => {state.handle_input(event)}
             }
         }
         
         canvas.set_draw_color(Color::RGB(200, 200, 255));
         canvas.clear();
-
+        
+        state.update_held_keys(&event_pump.keyboard_state());
         state.update(dt);
         state.draw(&mut canvas, xres, yres);
 

@@ -68,3 +68,48 @@ OK on to the next thing
 actually properly implement the apply movement thing
 implement left and right
 implement jumping
+
+----------------
+ok first do proper apply_movement
+
+work out x bound
+work out y bound
+
+collisions involving us
+.
+
+----------
+
+problem is probably the same thing as in cpp ie thinking collided when not
+
+-----------
+
+right now it moves it right up to the border
+resulting in 'bad collision' next time
+so I could keep it slightly off the border with epsilon
+or I could try to make it behave
+
+-----------------------
+
+ok sweet
+make vy reset if y movt stops
+fix left and right col cases
+refactor into different files gawd
+
+--------
+fix from right
+
+add coyote time
+
+maek da level!
+
+
+---
+ah running along platforms is a bit of a cooked case for the collisions
+----
+
+coyote time
+variable jump height
+level gen
+fix running
+fix from right though its truly not needed lol
