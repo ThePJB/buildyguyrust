@@ -115,13 +115,10 @@ pub fn rect_collision_direction(subject_old: Rect, subject_desired: Rect, object
     } else if subject_old.left() >= object.right() && subject_desired.left() <= object.right() {
         CollisionDirection::Right
     } else if subject_old.bot() <= object.top() && subject_desired.bot() >= object.top() {
-        println!("above!");
         CollisionDirection::Above
     } else if subject_old.top() >= object.bot() && subject_desired.top() <= object.bot() {
-        println!("below collision");
         CollisionDirection::Below
     } else {
-        println!("bad collision");
         CollisionDirection::Below
     }
 }
@@ -286,6 +283,8 @@ impl GameState {
         if self.player_is_grounded() {
             self.last_grounded = self.time;
         }
+
+        self.cull_entities();
     }
 
     pub fn cease_falling(entities: &mut HashMap<u32, Entity>, collisions: &Vec<CollisionEvent>) {
@@ -374,11 +373,7 @@ impl GameState {
                 _ => 0.0,
             };
 
-            println!("entity y {} h {} vy {} y movt {}", entity.aabb.y, entity.aabb.h, entity.vy*dt, y_movt);
-            println!("x ({},{}) y ({}, {})", min_x, max_x, min_y, max_y);
-
             if x_movt != 0.0 || y_movt != 0.0 {
-                println!("pushing movt {:?} {:?} {:?}", entity_key, x_movt, y_movt);
                 movements.push((*entity_key, x_movt, y_movt));
             }
         }
@@ -419,6 +414,14 @@ impl GameState {
                 }
             }
         }
+    }
+
+    pub fn cull_entities(&mut self) {
+        let scr_rect = Rect::new(self.cam_x, 0.0, self.aspect_ratio, 1.0);
+        let player_id = self.player_id;
+        self.entities.retain(|entity_key, entity| rect_intersection(entity.aabb, scr_rect) || *entity_key == player_id);
+
+        println!("{} entities remain", self.entities.len());
     }
 
     pub fn handle_input(&mut self, e: Event) {

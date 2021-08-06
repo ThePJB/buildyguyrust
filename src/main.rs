@@ -4,6 +4,8 @@ use sdl2::pixels::Color;
 use sdl2::keyboard::{KeyboardState, Keycode};
 use sdl2::event::Event;
 use game::GameState;
+use std::ops::Sub;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 fn main() {
     let xres = 800;
@@ -25,9 +27,10 @@ fn main() {
     let cam_vx = 0.4;
 
     let mut state = GameState::new(a, gravity, cam_vx);
-    let dt = 1.0f64 / 60f64;
+    let mut dt = 1.0f64 / 60f64;
 
     'running: loop {
+        let loop_start = SystemTime::now();
         
         for event in event_pump.poll_iter() {
             match event {
@@ -52,6 +55,15 @@ fn main() {
 
         canvas.present();
 
-        std::thread::sleep(std::time::Duration::new(0, 1_000_000_000u32 / 60));
+        let loop_end = SystemTime::now();
+        let delta = loop_end.duration_since(loop_start).unwrap().as_secs_f64();
+        let frame_cap = 1.0 / 60.0;
+        if delta < frame_cap {
+            std::thread::sleep(Duration::from_secs_f64(frame_cap - delta));
+            dt = frame_cap;
+        } else {
+            dt = delta;
+        }
+        println!("{} fps", 1.0/dt);
     }
 }

@@ -116,3 +116,16 @@ fix from right though its truly not needed lol
 
 ----
 to refactor will I be allowed circular imports?
+
+
+tomorrow:
+    - try and refactor
+        - rect
+        - entity
+        - collision
+        
+    - killer walls
+    - fix running
+    - fix right collision
+    - draw indicators
+    - score
