@@ -1,11 +1,13 @@
 mod game;
+mod rect;
+mod collision;
+mod entity;
 
 use sdl2::pixels::Color;
-use sdl2::keyboard::{KeyboardState, Keycode};
+use sdl2::keyboard::Keycode;
 use sdl2::event::Event;
 use game::GameState;
-use std::ops::Sub;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime};
 
 fn main() {
     let xres = 800;
