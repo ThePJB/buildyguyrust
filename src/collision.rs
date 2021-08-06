@@ -15,6 +15,8 @@ pub struct CollisionEvent {
     pub subject: u32,
     pub object: u32,
     pub dir: CollisionDirection,
+    pub subject_rect: Rect,
+    pub object_rect: Rect,
 }
 
 // chucks them into the vec
@@ -40,55 +42,55 @@ pub fn simulate_collisions(entities: &HashMap<u32, Entity>, collisions: &mut Vec
                     dir: collision_dir,
                     subject: *subject_key,
                     object: *object_key,
+                    subject_rect: subject.aabb,
+                    object_rect: object.aabb,
                 });
             }
         }
     }
 }
 
+// needs to be more testable
+// way less fuckod if i just store the rect of the object in the collision
+// it is duplicate info tho
+
+fn movement_bounds(subject_key: u32, collisions: &Vec<CollisionEvent>) -> (f32, f32, f32, f32) {
+    let max_dx = collisions.iter().filter(|col| col.subject == subject_key)
+        .filter(|col| col.dir == CollisionDirection::Left)
+        .map(|col| col.object_rect.left() - col.subject_rect.right())
+        .fold(f32::INFINITY, |a, b| a.min(b));
+
+    let max_dy = collisions.iter().filter(|col| col.subject == subject_key)
+        .filter(|col| col.dir == CollisionDirection::Above)
+        .map(|col| col.object_rect.top() - col.subject_rect.bot())
+        .fold(f32::INFINITY, |a, b| a.min(b));
+        
+    let min_dx = collisions.iter().filter(|col| col.subject == subject_key)
+        .filter(|col| col.dir == CollisionDirection::Right)
+        .map(|col| col.object_rect.right() - col.subject_rect.left())
+        .fold(-f32::INFINITY, |a, b| a.max(b));
+
+    let min_dy = collisions.iter().filter(|col| col.subject == subject_key)
+        .filter(|col| col.dir == CollisionDirection::Below)
+        .map(|col| col.object_rect.bot() - col.subject_rect.top())
+        .fold(-f32::INFINITY, |a, b| a.max(b));
+
+    return (min_dx, max_dx, min_dy, max_dy);
+}
+
+fn clamp(val: f32, min: f32, max: f32) -> f32 {
+    match val {
+        val if val <= min => min,
+        val if val >= max => max,
+        _ => val
+    }
+}
 
 pub fn compute_movement(entities: &HashMap<u32, Entity>, collisions: &Vec<CollisionEvent>, movements: &mut Vec<(u32, f32, f32)>, dt: f32) {
     for (entity_key, entity) in entities.iter() {
-
-        let max_x = collisions
-            .iter()
-            .filter(|col| col.subject == *entity_key)
-            .filter(|col | col.dir == CollisionDirection::Left)
-            .map(|col| -entity.aabb.x -entity.aabb.w + entities.get(&col.object).unwrap().aabb.x)
-            .fold(f32::INFINITY, |a, b| a.min(b));
-
-        let max_y = collisions
-            .iter()
-            .filter(|col| col.subject == *entity_key)
-            .filter(|col | col.dir == CollisionDirection::Above)
-            .map(|col| -entity.aabb.y -entity.aabb.h + entities.get(&col.object).unwrap().aabb.y)
-            .fold(f32::INFINITY, |a, b| a.min(b));
-        
-        let min_x =  collisions
-            .iter()
-            .filter(|col| col.subject == *entity_key)
-            .filter(|col | col.dir == CollisionDirection::Right)
-            .map(|col| -entity.aabb.x + entities.get(&col.subject).unwrap().aabb.w + entities.get(&col.object).unwrap().aabb.x)
-            .fold(-f32::INFINITY, |a, b| a.max(b));
-
-        let min_y =  collisions
-            .iter()
-            .filter(|col| col.subject == *entity_key)
-            .filter(|col | col.dir == CollisionDirection::Below)
-            .map(|col| -entity.aabb.y + entities.get(&col.subject).unwrap().aabb.h + entities.get(&col.object).unwrap().aabb.y)
-            .fold(-f32::INFINITY, |a, b| a.max(b));
-
-        let x_movt = match entity.vx*dt {
-            vx if vx > 0.0 => {vx.min(max_x)},
-            vx if vx < 0.0 => {vx.max(min_x)},
-            _ => 0.0,
-        };
-
-        let y_movt = match entity.vy*dt {
-            vy if vy > 0.0 => {vy.min(max_y)},
-            vy if vy < 0.0 => {vy.max(min_y)},
-            _ => 0.0,
-        };
+        let (min_x, max_x, min_y, max_y) = movement_bounds(*entity_key, collisions);
+        let x_movt = clamp(entity.vx * dt, min_x, max_x);
+        let y_movt = clamp(entity.vy * dt, min_y, max_y);
 
         if x_movt != 0.0 || y_movt != 0.0 {
             movements.push((*entity_key, x_movt, y_movt));
