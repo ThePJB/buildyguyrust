@@ -9,6 +9,12 @@ pub enum PlatformHeight {
     Bottom,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DrawOrder {
+    Front,
+    Back,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Entity {
     pub aabb: Rect,
@@ -17,6 +23,7 @@ pub struct Entity {
     pub colour: Color,
     pub vx: f32,
     pub vy: f32,
+    pub draw_order: DrawOrder,
 }
 
 impl Entity {
@@ -27,6 +34,7 @@ impl Entity {
             obeys_gravity: true,
             colour: Color::RGB(255, 255, 255),
             vx: 0.0, vy: 0.0,
+            draw_order: DrawOrder::Front,
         }
     }
 
@@ -45,6 +53,7 @@ impl Entity {
                 PlatformHeight::Bottom => Color::RGB(0, 0, 255),
             },
             vx: 0.0, vy: 0.0,
+            draw_order: DrawOrder::Front,
         }
     }
 
@@ -55,6 +64,7 @@ impl Entity {
             obeys_gravity: false,
             colour: Color::RGB(150, 150, 150),
             vx: 0.0, vy: 0.0,
+            draw_order: DrawOrder::Back,
         }
     }
 }

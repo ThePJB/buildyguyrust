@@ -57,9 +57,8 @@ impl GameState {
     }
 
     pub fn draw(&self, canvas: &mut Canvas<Window>, w: u32, h: u32) {
-        for (_, entity) in self.entities.iter() {
+        let mut draw_entity = |entity: &Entity, a: f32| {
             canvas.set_draw_color(entity.colour);
-            let a = w as f32 / h as f32;
             let x_transformed = entity.aabb.x - self.cam_x;
             let entity_screenspace_rect = sdl2::rect::Rect::new(    
                 (x_transformed / a * w as f32) as i32,
@@ -68,7 +67,26 @@ impl GameState {
             (entity.aabb.h * h as f32) as u32,
             );
             canvas.fill_rect(entity_screenspace_rect).unwrap();
+        };
+
+            /*
+        let a = w as f32 / h as f32;
+        for (_, entity) in self.entities.iter() {
+            canvas.set_draw_color(entity.colour);
+            let x_transformed = entity.aabb.x - self.cam_x;
+            let entity_screenspace_rect = sdl2::rect::Rect::new(    
+                (x_transformed / a * w as f32) as i32,
+                (entity.aabb.y * h as f32) as i32,
+                (entity.aabb.w / a * w as f32) as u32,
+            (entity.aabb.h * h as f32) as u32,
+            );
+            canvas.fill_rect(entity_screenspace_rect).unwrap();
         }
+        */
+
+        // poor mans bucket sort
+        self.entities.iter().filter(|(_, entity)| entity.draw_order == DrawOrder::Front).for_each(|(_, entity)| draw_entity(entity, w as f32/h as f32));
+        self.entities.iter().filter(|(_, entity)| entity.draw_order == DrawOrder::Back).for_each(|(_, entity)| draw_entity(entity, w as f32/h as f32));
     }
 
     pub fn add_entity(&mut self, entity: Entity) -> u32 {

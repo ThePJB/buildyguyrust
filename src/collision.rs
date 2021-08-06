@@ -50,10 +50,6 @@ pub fn simulate_collisions(entities: &HashMap<u32, Entity>, collisions: &mut Vec
     }
 }
 
-// needs to be more testable
-// way less fuckod if i just store the rect of the object in the collision
-// it is duplicate info tho
-
 fn movement_bounds(subject_key: u32, collisions: &Vec<CollisionEvent>) -> (f32, f32, f32, f32) {
     let max_dx = collisions.iter().filter(|col| col.subject == subject_key)
         .filter(|col| col.dir == CollisionDirection::Left)
@@ -98,7 +94,6 @@ pub fn compute_movement(entities: &HashMap<u32, Entity>, collisions: &Vec<Collis
     }
 }
 
-
 #[test]
 fn test_rcd() {
     {
@@ -141,6 +136,7 @@ pub fn rect_collision_direction(subject_old: Rect, subject_desired: Rect, object
     } else if subject_old.top() >= object.bot() && subject_desired.top() <= object.bot() {
         CollisionDirection::Below
     } else {
+        println!("bad collision");
         CollisionDirection::Below
     }
 }
