@@ -32,6 +32,8 @@ pub struct GameState {
     time: f64,
     last_grounded: f64,
     next_wall: f32,
+    pause: bool,
+    dead: bool,
 }
 
 impl GameState {
@@ -47,7 +49,9 @@ impl GameState {
             player_id: 0,
             time: 0.0,
             last_grounded: 0.0,
-            next_wall: aspect_ratio,
+            next_wall: aspect_ratio - wall_spacing_range.start,
+            pause: false,
+            dead: false,
         };
 
         state.player_id = state.add_entity(Entity::new_player(aspect_ratio/2.0, 0.4));
@@ -69,24 +73,8 @@ impl GameState {
             canvas.fill_rect(entity_screenspace_rect).unwrap();
         };
 
-            /*
-        let a = w as f32 / h as f32;
-        for (_, entity) in self.entities.iter() {
-            canvas.set_draw_color(entity.colour);
-            let x_transformed = entity.aabb.x - self.cam_x;
-            let entity_screenspace_rect = sdl2::rect::Rect::new(    
-                (x_transformed / a * w as f32) as i32,
-                (entity.aabb.y * h as f32) as i32,
-                (entity.aabb.w / a * w as f32) as u32,
-            (entity.aabb.h * h as f32) as u32,
-            );
-            canvas.fill_rect(entity_screenspace_rect).unwrap();
-        }
-        */
-
-        // poor mans bucket sort
-        self.entities.iter().filter(|(_, entity)| entity.draw_order == DrawOrder::Front).for_each(|(_, entity)| draw_entity(entity, w as f32/h as f32));
         self.entities.iter().filter(|(_, entity)| entity.draw_order == DrawOrder::Back).for_each(|(_, entity)| draw_entity(entity, w as f32/h as f32));
+        self.entities.iter().filter(|(_, entity)| entity.draw_order == DrawOrder::Front).for_each(|(_, entity)| draw_entity(entity, w as f32/h as f32));
     }
 
     pub fn add_entity(&mut self, entity: Entity) -> u32 {
@@ -106,6 +94,10 @@ impl GameState {
     }
 
     pub fn update(&mut self, dt: f64) {
+        if self.pause {
+            return;
+        }
+
         self.time += dt;
         self.cam_x += self.cam_vx * dt as f32;
 
@@ -129,6 +121,7 @@ impl GameState {
             self.last_grounded = self.time;
         }
 
+        self.kill_player();
         self.cull_entities();
     }
 
@@ -180,9 +173,18 @@ impl GameState {
     pub fn cull_entities(&mut self) {
         let scr_rect = Rect::new(self.cam_x, 0.0, self.aspect_ratio, 1.0);
         let player_id = self.player_id;
-        self.entities.retain(|entity_key, entity| rect_intersection(entity.aabb, scr_rect) || *entity_key == player_id);
 
-        println!("{} entities remain", self.entities.len());
+        self.entities.retain(|entity_key, entity| rect_intersection(entity.aabb, scr_rect) || *entity_key == player_id);
+    }
+
+    pub fn kill_player(&mut self) {
+        let scr_rect = Rect::new(self.cam_x, 0.0, self.aspect_ratio, 1.0);
+        if self.frame_collisions.iter().any(|col| col.subject == self.player_id && self.entities.get(&col.object).unwrap().deadly)
+            || !rect_intersection(self.entities.get(&self.player_id).unwrap().aabb, scr_rect) {
+            println!("you died, score = {}, press R to restart", (self.cam_x*1000.0) as u32);
+            self.pause = true;     
+            self.dead = true;       
+        }
     }
 
     pub fn handle_input(&mut self, e: Event) {
@@ -199,6 +201,7 @@ impl GameState {
             Event::KeyDown{keycode: Some(Keycode::L), ..} => { self.add_entity(Entity::new_platform(
                 self.entities.get(&self.player_id).unwrap().aabb.x, 
                 PlatformHeight::Top));}
+            Event::KeyDown{keycode: Some(Keycode::P), ..} => { if !self.dead {self.pause = !self.pause}}
             _ => {}
         }
     }

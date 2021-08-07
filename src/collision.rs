@@ -22,6 +22,7 @@ pub struct CollisionEvent {
 // chucks them into the vec
 pub fn simulate_collisions(entities: &HashMap<u32, Entity>, collisions: &mut Vec<CollisionEvent>, t: f32) {
     for (subject_key, subject) in entities {
+        if !subject.obeys_gravity {continue};
         for (object_key, object) in entities {
             if *subject_key == *object_key {continue};
 

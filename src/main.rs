@@ -66,6 +66,6 @@ fn main() {
         } else {
             dt = delta;
         }
-        println!("{} fps", 1.0/dt);
+        //println!("{} fps", 1.0/dt);
     }
 }
