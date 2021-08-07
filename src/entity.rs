@@ -41,9 +41,9 @@ impl Entity {
     pub fn new_platform(player_x: f32, which: PlatformHeight) -> Entity {
         Entity {
             aabb: match which {
-                PlatformHeight::Top => Rect::new(player_x + 0.6, 0.2, 0.1, 0.05),
-                PlatformHeight::Middle => Rect::new(player_x + 0.5, 0.5, 0.1, 0.05),
-                PlatformHeight::Bottom => Rect::new(player_x + 0.4, 0.8, 0.1, 0.05),
+                PlatformHeight::Top => Rect::new(player_x + 0.5, 0.4, 0.1, 0.05),
+                PlatformHeight::Middle => Rect::new(player_x + 0.4, 0.6, 0.1, 0.05),
+                PlatformHeight::Bottom => Rect::new(player_x + 0.3, 0.8, 0.1, 0.05),
             },
             deadly: false,
             obeys_gravity: false,

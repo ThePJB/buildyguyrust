@@ -128,12 +128,12 @@ fn test_rcd() {
 }
 
 pub fn rect_collision_direction(subject_old: Rect, subject_desired: Rect, object: Rect) -> CollisionDirection {
-    if subject_old.right() <= object.left() && subject_desired.right() >= object.left() {
+    if subject_old.bot() <= object.top() && subject_desired.bot() >= object.top() {
+    CollisionDirection::Above
+    } else if subject_old.right() <= object.left() && subject_desired.right() >= object.left() {
         CollisionDirection::Left
     } else if subject_old.left() >= object.right() && subject_desired.left() <= object.right() {
         CollisionDirection::Right
-    } else if subject_old.bot() <= object.top() && subject_desired.bot() >= object.top() {
-        CollisionDirection::Above
     } else if subject_old.top() >= object.bot() && subject_desired.top() <= object.bot() {
         CollisionDirection::Below
     } else {

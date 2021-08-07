@@ -55,7 +55,7 @@ impl GameState {
         };
 
         state.player_id = state.add_entity(Entity::new_player(aspect_ratio/2.0, 0.4));
-        state.add_entity(Entity::new_platform(aspect_ratio/2.0 - 0.5, PlatformHeight::Middle));
+        state.add_entity(Entity::new_platform(aspect_ratio/2.0 - 0.4, PlatformHeight::Middle));
     
         return state;
     }

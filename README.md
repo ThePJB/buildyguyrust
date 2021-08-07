@@ -28,3 +28,8 @@ why oob pause no print?
 add text lol show high score
 
 lines was a mistake, have soemthing to master for noobs? or just learning curve maximum lol
+
+offscreen gets culled forward as well
+
+fuck yeah add moving platforms
+maybe make cull distance a lot bigger
